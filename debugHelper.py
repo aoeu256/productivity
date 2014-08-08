@@ -36,28 +36,28 @@ def ignored(exc):
 
 # static locals
 #
-def query(q, code):
-    """
->>> for node in query('~f(*~args)', 'for g in c: a(b(5)); c(8)'):
-...    print(tos(node))
-a(b(5))
-b(5)S
-c(8)
-    """
-    sStr = '_q_u_e_'
-    assert sStr not in q
-    q.replace('~', sStr)
-    locs = {}
-    pt = ast.parse(q)
-    for node in pt.walk(q):
-        if node.__class__ != pt.__class__: continue
-
-        # updateLocs(node, locs)
-
-        for fielda, fieldb in zip(ast.iter_fields(node), ast.iter_fields(q)):
-            if fielda == fieldb or fieldb == sStr: break
-
-        yield node
+# def query(q, code):
+#     """
+# >>> for node in query('~f(*~args)', 'for g in c: a(b(5)); c(8)'):
+# ...    print(tos(node))
+# a(b(5))
+# b(5)S
+# c(8)
+#     """
+#     sStr = '_q_u_e_'
+#     assert sStr not in q
+#     q.replace('~', sStr)
+#     locs = {}
+#     pt = ast.parse(q)
+#     for node in pt.walk(q):
+#         if node.__class__ != pt.__class__: continue
+#
+#         # updateLocs(node, locs)
+#
+#         for fielda, fieldb in zip(ast.iter_fields(node), ast.iter_fields(q)):
+#             if fielda == fieldb or fieldb == sStr: break
+#
+#         yield node
 
 
 class Context(dict):
@@ -170,30 +170,25 @@ def lnames(node):
         for name in get_names(targ):
             yield name
 
-
-class prettyset(set):
-    def __repr__(self):
-        return '{' + ', '.join(sorted(str(i) for i in self)) + '}'
-
-
 class DepFinder(ast.NodeVisitor):
     """
 >>> code = ['lst=range(25)','def fn(a): return a+b+c', 'random.choice(fn(lst))']
 >>> df = DepFinder()
->>> df.get_deps(code[1])
-deps(new=['fn'], deps={b, c})
+>>> def dodeps(s): dep = df.get_deps(s); return DepFinder.tup(dep.new, list(sorted(dep.deps)) 
+>>> dodeps(code[1])
+deps(new=['fn'], deps=['c', 'b'])
 
->>> df.get_deps(code[2])
-deps(new=[], deps={fn, lst, random})
+>>> dodeps(code[2])
+deps(new=[], deps=['fn', 'lst', 'random'])
 
->>> df.get_deps('a, b = c, d = 2, 2')
-deps(new=['a', 'c', 'b', 'd'], deps={})
+>>> set(dodeps('a, b = c, d = 2, 2').new) == {'a', 'b', 'c', 'd'}
+True
 
->>> df.get_deps('[(a, i) for i in range(20)]')
-deps(new=[], deps={a})
+>>> dodeps('[(a, i) for i in range(20)]')
+deps(new=[], deps=['a'])
 
->>> df.get_deps('for b in [0]: f(b+c)')
-deps(new=[], deps={c, f})
+>>> dodeps('for b in [0]: f(b+c)')
+deps(new=[], deps=['c', 'f'])
     """
     depstatements = set([Expression, Assert, Assign, AugAssign,
                          Del, Return, Yield, Raise, Global])
@@ -206,7 +201,7 @@ deps(new=[], deps={c, f})
     def __init__(self):
         self.args = Context()
         # self.localDeps = Context() # {node: [name]}
-        self.deps = prettyset([])
+        self.deps = set()
         self.setters = Context()  # {name: [node]}
         # self.globals = set(chain(dir(__builtins__), globals(), sys.modules))
         self.globals = set(__builtins__)
@@ -335,7 +330,7 @@ deps(new=[], deps={c, f})
 def depsAll(history, depf=None):
     """
 >>> depsAll(['a=2', 'b=a', 'a=b', 'b=a', 'a=b'])
-linedep(linedeps={0: {}, 1: {0}, 2: {1}, 3: {2}, 4: {3}}, setters={0: ['a'], 1: ['b'], 2: ['a'], 3: ['b'], 4: ['a']}, locals={'a': 4, 'b': 3}, error=[])
+linedep(linedeps={0: set(), 1: {0}, 2: {1}, 3: {2}, 4: {3}}, setters={0: ['a'], 1: ['b'], 2: ['a'], 3: ['b'], 4: ['a']}, locals={'a': 4, 'b': 3}, error=[])
     """
     depf = depf or DepFinder()
     lines = {}
@@ -347,7 +342,7 @@ linedep(linedeps={0: {}, 1: {0}, 2: {1}, 3: {2}, 4: {3}}, setters={0: ['a'], 1: 
         try:
             dep = depf.get_deps(line, func=depf.full_deps)
             localset = dep.deps & set(locs.keys())
-            lines[ln] = prettyset(locs[k] for k in localset)
+            lines[ln] = set(locs[k] for k in localset)
             setters[ln] = dep.new  # , dep.nodes
             for k in chain(*dep.new):
                 locs[k] = ln
@@ -373,6 +368,19 @@ def filterdeps(linedeps, retln):
 
 # TODO: In order to support ';' we need to intelligently split the history up
 
+words = lambda a: a.split() if isinstance(a, str) else list(a)
+
+def getHistory(history):
+    if history is None and '__IPYTHON__' in dir(__builtins__):
+        history = _ih  # @UndefinedVariable
+
+    newhistory = []
+    for line in history:
+        with ignored(SyntaxError):
+            for lline in ast.parse(line).body:
+                newhistory.append(astor.to_source(lline))
+    return newhistory
+
 def makefunc(name, arglist='', history=None, ret=None, imports=True):
     """
 >>> hist=['b=2', 'a=b+5']
@@ -381,62 +389,50 @@ def lol(b=2):
     a=b+5
     return a
 >>> print(makefunc('lol', ret='b', history=hist))
-def lol(b=2):
+def lol(b = 2):
     return b
->>> hist=['a=4', 'def f(d): a = 5; return d + a', 'f(a)+1']
->>> print(makefunc('lol', history=hist))
+>>> print(makefunc('lol', history=['a=4', 'def f(d): a = 5; return d + a', 'f(a)+1']))
 def lol(a=4):
     def f(d): a = 5; return d + a
     return f(a)+1
     """
-    if history is None and '__IPYTHON__' in dir(__builtins__):
-        history = _ih  # @UndefinedVariable
+    history = getHistory(history)
 
-    #newhistory = chain(*[ast.parse(i) for i in history])
-
-    if isinstance(arglist, str):
-        arglist = arglist.split()
+    is_assign = lambda s: isinstance(ast.parse(s).body[0], Assign)
+    foundVar = False
+    if ret is None:
+        lastnode = ast.parse(history[-1]).body[0]
+        if isinstance(lastnode, ast.Assign):
+            history.append(history[-1].split('=')[0].strip())
+        ret = history[-1].strip()
+        retln = len(history) - 1
+        foundVar = True
 
     alldeps = depsAll(history)
-
-    if ret is None:
-        retln = len(history) - 1
-        if '=' in history[-1]:
-            history.append(history[-1].split('=')[0])
-        ret = history[-1]
-    else:
-        retln = alldeps.locals[ret]
+    if not foundVar: retln = alldeps.locals[ret]
 
     deps = filterdeps(alldeps.linedeps, retln)
-
-    # depkeys = set(deps.keys())
-    # arglines = [dep for dep, linedep in deps.items() if not depkeys & linedep]
-    arglines = [ln for ln, deplns in deps.items() if len(deplns) == 0]
-    arglines = [ln for ln in arglines if '=' in history[ln]]
+    arglines = [ln for ln, deplns in deps.items() if len(deplns) == 0 and is_assign(history[ln])]
+    #arglines = [ln for ln in arglines if '=' in history[ln]]
     args = {}
     arg2ln = {}
     for ln in arglines:
         for lval in alldeps.setters[ln]:
             try:
-                args[lval] = history[ln].split('=')[-1]
+                args[lval] = history[ln].split('=')[-1].strip()
                 arg2ln[lval] = ln
             except IndexError as e:
                 print(e, out=sys.stderr)
 
-    if not arglist:
-        arglist = args.keys()
-    elif isinstance(arglist, str):
-        arglist = arglist.split()
-
+    arglist = words(arglist) or args.keys()
     funcL = ['def %s(%s):' % (name, \
-                              ', '.join('%s=%s' % (k, args[k]) for k in arglist))]
+                              ', '.join('%s = %s' % (k, args[k]) for k in arglist))]
     lines = sorted(ln for ln in set(deps) - set(arg2ln[i] for i in arglist) - set([retln]))
     tab = '    '
-    funcL += [tab + history[ln] for ln in lines]
+    funcL += [tab+line for ln in lines for line in history[ln].split('\n')]
     funcL.append(tab + 'return %s' % ret)
-
+    #pprint.pprint(locals())
     return '\n'.join(funcL)
-
 
 def parse(node):
     return ast.parse(node).body[0]
@@ -520,7 +516,7 @@ def gather(history, vars=''):
             exec(line, newdic)
             del newdic['__builtins__']
             if len(newdic) == 1:
-                mylocals['_'] = newdic.items().next()[1]
+                mylocals['_'] = list(newdic.values())[0]
             mylocals.update(newdic)
     return newexpr
 
@@ -795,7 +791,7 @@ def removeDocTest(funcdef, indent=True, prompt='>>>'):
     """
 >>> src = inspect.getsource(autoadd)
 >>> removeDocTest(ast.parse(src).body[0])
-['- add(1, 2)', '        2']
+['- add(1, 2)', '    2']
     """
     doc = ast.get_docstring(funcdef) or None
     lines = doc.split('\n')
@@ -841,8 +837,15 @@ def annotate_functions(callrecords, module):
 2
 >>> lines = annotate_functions({'add2': CallRecords.records['add2']}, sys.modules[__name__])
 >>> _, startLines = inspect.getsourcelines(globals()['add2'])
->>> lines[startLines:startLines+8]
-['def add2(a, b):', '    ""\"- add2(1, 2)', '    ', '    2', '    >>> add2(1, 1) #@autogenerated', '    2', '    ""\"', '    return a + b']
+>>> pprint(lines[startLines:startLines+8])
+['def add2(a, b):',
+ '    ""\"- add2(1, 2)',
+ '    ',
+ '    2',
+ '    >>> add2(1, 1) #@autogenerated',
+ '    2',
+ '    ""\"',
+ '    return a + b']
     """
     lines = open(inspect.getfile(module), 'r').readlines()
     for func, record in callrecords.items():
