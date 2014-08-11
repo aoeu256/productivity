@@ -15,7 +15,7 @@ import inspect
 import functools
 import tokenize
 import token
-import pprint
+from pprint import pprint
 import ast
 import collections
 import pdb
@@ -25,11 +25,11 @@ import astor
 # pydevd.GetGlobalDebugger().setExceptHook(Exception, True, False)
 
 @contextmanager
-def ignored(exc):
-    try:
-        yield
-    except exc:
-        pass
+def ignored(*exc_list):
+    try: yield
+    except Exception as e:
+        if e.__class__ not in exc_list:
+            raise
 
 # with query('~f(*~args)') as query:
 # 	query.add_next()
@@ -172,13 +172,13 @@ def lnames(node):
 
 class DepFinder(ast.NodeVisitor):
     """
->>> code = ['lst=range(25)','def fn(a): return a+b+c', 'random.choice(fn(lst))']
+>>> code = ['lst=range(25)']
 >>> df = DepFinder()
->>> def dodeps(s): dep = df.get_deps(s); return DepFinder.tup(dep.new, list(sorted(dep.deps)) 
->>> dodeps(code[1])
-deps(new=['fn'], deps=['c', 'b'])
+>>> def dodeps(s): dep = df.get_deps(s); return DepFinder.tup(dep.new, list(sorted(dep.deps)))
+>>> dodeps('def fn(a): return a+b+c')
+deps(new=['fn'], deps=['b', 'c'])
 
->>> dodeps(code[2])
+>>> dodeps('random.choice(fn(lst))')
 deps(new=[], deps=['fn', 'lst', 'random'])
 
 >>> set(dodeps('a, b = c, d = 2, 2').new) == {'a', 'b', 'c', 'd'}
@@ -189,6 +189,9 @@ deps(new=[], deps=['a'])
 
 >>> dodeps('for b in [0]: f(b+c)')
 deps(new=[], deps=['c', 'f'])
+
+>>> dodeps("with a as b: def fuck(a): a=e; return b")
+deps(new=[], deps=['a', 'e'])
     """
     depstatements = set([Expression, Assert, Assign, AugAssign,
                          Del, Return, Yield, Raise, Global])
@@ -330,7 +333,8 @@ deps(new=[], deps=['c', 'f'])
 def depsAll(history, depf=None):
     """
 >>> depsAll(['a=2', 'b=a', 'a=b', 'b=a', 'a=b'])
-linedep(linedeps={0: set(), 1: {0}, 2: {1}, 3: {2}, 4: {3}}, setters={0: ['a'], 1: ['b'], 2: ['a'], 3: ['b'], 4: ['a']}, locals={'a': 4, 'b': 3}, error=[])
+linedep(linedeps={0: set(), 1: {0}, 2: {1}, 3: {2}, 4: {3}}, setters={0: ['a'], 1: ['b'],
+2: ['a'], 3: ['b'], 4: ['a']}, locals={'a': 4, 'b': 3}, errors=[])
     """
     depf = depf or DepFinder()
     lines = {}
@@ -371,8 +375,9 @@ def filterdeps(linedeps, retln):
 words = lambda a: a.split() if isinstance(a, str) else list(a)
 
 def getHistory(history):
+
     if history is None and '__IPYTHON__' in dir(__builtins__):
-        history = _ih  # @UndefinedVariable
+        history = _ih  # @UndefinesdVariable
 
     newhistory = []
     for line in history:
@@ -385,17 +390,22 @@ def makefunc(name, arglist='', history=None, ret=None, imports=True):
     """
 >>> hist=['b=2', 'a=b+5']
 >>> print(makefunc('lol', history=hist))
-def lol(b=2):
-    a=b+5
-    return a
+    def lol(b = 2):
+        a = (b + 5)
+        return a
 >>> print(makefunc('lol', ret='b', history=hist))
 def lol(b = 2):
     return b
 >>> print(makefunc('lol', history=['a=4', 'def f(d): a = 5; return d + a', 'f(a)+1']))
-def lol(a=4):
-    def f(d): a = 5; return d + a
-    return f(a)+1
-    """
+def lol(a = 4):
+    def f(d):
+        a = 5
+        return (d + a)
+    return (f(a) + 1)
+>>> print(makefunc('lol', history=['a=4', 'def f(d): a = 5; return d + a', 'f(a)+1']))
+
+"""
+
     history = getHistory(history)
 
     is_assign = lambda s: isinstance(ast.parse(s).body[0], Assign)
@@ -431,30 +441,17 @@ def lol(a=4):
     tab = '    '
     funcL += [tab+line for ln in lines for line in history[ln].split('\n')]
     funcL.append(tab + 'return %s' % ret)
-    #pprint.pprint(locals())
+    #pprint(locals())
     return '\n'.join(funcL)
 
 def parse(node):
     return ast.parse(node).body[0]
 
-
-# def replace_tokens(s, dic={}, match=None, using=None):
-# """
-# >>> replace_tokens('(_+5)*_', match='_', using='a')
-# '(a+5)*a' """
-# 	if match is not None and using is not None:
-# 		dic[match] = using
-# 	s = StringIO(s)
-# 	tokens = ((i[0], dic.get(i[1], i[1]), i[2], i[3], i[4])\
-# 	          if i[0] == token.NAME else i \
-# 	          for i in tokenize.generate_tokens(s.readline))
-# 	return tokenize.untokenize(tokens)
-
 def ap(funcdef, *args, **kwargs):
     """
-    >>> fd = 'def myfunc(a, b=2, c=3, *args, **kwargs): return a + b'
-    >>> ap(ast.parse(fd).body[0], 2, 3, c=5, g=1)
-    {'a': 2, 'c': 5, 'b': 3, 'g': 1, 'args': (), 'kwargs': {'g': 1}}
+>>> fd = 'def myfunc(a, b=2, c=3, *args, **kwargs): return a + b'
+>>> list(sorted((k, v) for k, v in ap(ast.parse(fd).body[0], 2, 3, c=5, g=1).items()))
+[('a', 2), ('args', ()), ('b', 3), ('c', 5), ('g', 1), ('kwargs', {'g': 1})]
     """
     d = {}
     fdargs = funcdef.args
@@ -465,9 +462,9 @@ def ap(funcdef, *args, **kwargs):
     d.update(dict(zip(fargs, args)))
     d.update(kwargs)
     if fdargs.vararg is not None:
-        d[fdargs.vararg] = args[len(fargs):len(args)]
+        d[fdargs.vararg.arg] = args[len(fargs):len(args)]
     if fdargs.kwarg is not None:
-        d[fdargs.kwarg] = {k: v for k, v in kwargs.items() if k not in fargs}
+        d[fdargs.kwarg.arg] = {k: v for k, v in kwargs.items() if k not in fargs}
 
     return d
 
@@ -523,6 +520,8 @@ def gather(history, vars=''):
 
 def add(a, b): c = 8; return a + b  # @UnusedVariable
 
+def ords(dic):
+    return '{' + ', '.join(sorted(repr(k)+':'+repr(v) for k, v in dic.items()))  + '}'
 
 def calldic(f, *args, **kwargs):
     """
@@ -530,8 +529,7 @@ def calldic(f, *args, **kwargs):
 {'a': 1, 'c': 8, 'b': 2, '__retv__': 3}
     """
     d = {}
-    exec
-    src_locals(inspect.getsource(f)) in d
+    exec(src_locals(inspect.getsource(f)), d)
     newf = d[f.__name__]
     newf(*args, **kwargs)
     return newf.__locals__
@@ -577,10 +575,12 @@ def src_locals(src, newvars=True):
     """
 >>> print(src_locals('def add(a, b): c = 8; return a + b'))
 def add(a, b):
-    c = 8
-    __retv__ = (a + b)
-    add.__locals__ = locals()
-    return (a + b)
+    try:
+        c = 8
+        __retv__ = (a + b)
+        return locals()
+    except Exception as e:
+        return locals()
     """
     src = ast.parse(src)
     locs = collections.OrderedDict()
@@ -602,8 +602,9 @@ def add(a, b):
                 for nade in node:
                     if isinstance(nade, ast.Return):
                         retline = ast.parse('__retv__ = %s' % tos(nade.value)).body[0]
-                        saveLocal = ast.parse(
-                            ''.join([src.body[0].name, '.', '__locals__', '=', 'locals()'])).body[0]
+                        #saveLocal = ast.parse(
+                        #    ''.join([src.body[0].name, '.', '__locals__', '=', 'locals(
+                        # )'])).body[0]
                         node[-1:] = [retline, saveLocal] + [node[-1]]
                         break
                     else:
@@ -611,6 +612,9 @@ def add(a, b):
             elif isinstance(node, ast.AST):
                 myparser(node)
 
+    trynode = ast.parse('try: pass\nexcept Exception as e: return locals()').body[0]
+    trynode.body = src.body[0].body
+    src.body[0].body = [trynode]
     myparser(src.body[0])
     return tos(src)
 
@@ -837,15 +841,14 @@ def annotate_functions(callrecords, module):
 2
 >>> lines = annotate_functions({'add2': CallRecords.records['add2']}, sys.modules[__name__])
 >>> _, startLines = inspect.getsourcelines(globals()['add2'])
->>> pprint(lines[startLines:startLines+8])
+>>> pprint(lines[startLines:startLines+7])
 ['def add2(a, b):',
  '    ""\"- add2(1, 2)',
  '    ',
  '    2',
  '    >>> add2(1, 1) #@autogenerated',
  '    2',
- '    ""\"',
- '    return a + b']
+ '    ""\"']
     """
     lines = open(inspect.getfile(module), 'r').readlines()
     for func, record in callrecords.items():
@@ -874,7 +877,6 @@ class CallRecords:
             CallRecords.records[func_name] = (args, kwargs, rv)
             CallRecords.log.write(' '.join([str(i) for i in [func_name, args, kwargs, rv]]))
 
-
 try:
     CallRecords.records = {f: (args, kw, rv) for f, args, kw, rv in CallRecords.parseRecords()}
 except IOError:
@@ -899,6 +901,16 @@ def recorded(f):
         return ret
 
     return wrapper
+
+# def macro_decorator(f):
+#     def macro(f):
+#         tree = ast.parse(inspect.getsource(f)).body[0]
+#         mod_tree = f(tree)
+#         d = {}
+#         exec mod_tree in d
+#         return d['func']
+#
+#     return macro
 
 
 def record_all(func_list, globs=globals()):
@@ -959,8 +971,10 @@ def main():
 def pm_to(search, startframe=None, module=None, trace=False):
     from pprint import pprint
 
-    with ignored(AttributeError):
+    try:
         startframe = startframe or pm_to.__startframe__
+    except AttributeError:
+        with ignored(AttributeError): startframe = sys.last_traceback.tb_frame
 
     try:
         frames = pm_to.__frames__
