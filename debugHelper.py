@@ -59,6 +59,8 @@ def ignored(*exc_list):
 #
 #         yield node
 
+def tag(tag_list):
+    return lambda f: setattr(f, 'tags', getattr(f, 'tags', []) + words(tag_list))
 
 class Context(dict):
     def __init__(self, v=None):
@@ -140,24 +142,6 @@ def is_name(node):
 tos = lambda x: astor.to_source(x)
 
 
-class PrettyNode(object):
-    def __init__(self, node):
-        self.node = node
-
-    def __repr__(self):
-        return tos(self.node)
-
-    def __getattr__(self, v):
-        return getattr(self.node, v)
-
-
-def prettify(node):
-    # for nade in ast.walk(node):
-    # 		nade = PrettyNode(nade)
-    node = PrettyNode(node)
-    return node
-
-
 def get_names(node):
     if isinstance(node, Name):
         return [node]
@@ -190,8 +174,8 @@ deps(new=[], deps=['a'])
 >>> dodeps('for b in [0]: f(b+c)')
 deps(new=[], deps=['c', 'f'])
 
->>> dodeps("with a as b: def fuck(a): a=e; return b")
-deps(new=[], deps=['a', 'e'])
+>>> dodeps('with a as f: f(d)')
+deps(new=[], deps=['a', 'd'])
     """
     depstatements = set([Expression, Assert, Assign, AugAssign,
                          Del, Return, Yield, Raise, Global])
@@ -207,7 +191,7 @@ deps(new=[], deps=['a', 'e'])
         self.deps = set()
         self.setters = Context()  # {name: [node]}
         # self.globals = set(chain(dir(__builtins__), globals(), sys.modules))
-        self.globals = set(__builtins__)
+        self.globals = set(__builtins__.keys())
         self.classes = set()
         self.parents = []  # Combine the deps of the CHILDREN!
         self.scope = []
@@ -305,8 +289,10 @@ deps(new=[], deps=['a', 'e'])
             self.visit_deps(node.iter)
             self.visit_scoping(node.body, {i.id for i in names})
         elif isinstance(node, With):
-            args = {i.id for i in get_names(node.optional_vars)}
-            self.visit_deps(node.context_expr)
+            args = set()
+            for item in node.items:
+                self.visit_deps(item.context_expr)
+                args |= {i.id for i in get_names(item.optional_vars)}
             self.visit_scoping(node.body, args)
         elif node.__class__ in (ListComp, SetComp, DictComp, GeneratorExp):
             args = set([])
@@ -332,9 +318,13 @@ deps(new=[], deps=['a', 'e'])
 
 def depsAll(history, depf=None):
     """
->>> depsAll(['a=2', 'b=a', 'a=b', 'b=a', 'a=b'])
-linedep(linedeps={0: set(), 1: {0}, 2: {1}, 3: {2}, 4: {3}}, setters={0: ['a'], 1: ['b'],
-2: ['a'], 3: ['b'], 4: ['a']}, locals={'a': 4, 'b': 3}, errors=[])
+>>> linedeps, setters, locals, errors = depsAll(['a=2', 'b=a', 'a=b', 'b=a', 'a=b'])
+>>> linedeps
+{0: set(), 1: {0}, 2: {1}, 3: {2}, 4: {3}}
+>>> setters
+{0: ['a'], 1: ['b'], 2: ['a'], 3: ['b'], 4: ['a']}
+>>> locals
+{'a': 4, 'b': 3}
     """
     depf = depf or DepFinder()
     lines = {}
@@ -390,9 +380,9 @@ def makefunc(name, arglist='', history=None, ret=None, imports=True):
     """
 >>> hist=['b=2', 'a=b+5']
 >>> print(makefunc('lol', history=hist))
-    def lol(b = 2):
-        a = (b + 5)
-        return a
+def lol(b = 2):
+    a = (b + 5)
+    return a
 >>> print(makefunc('lol', ret='b', history=hist))
 def lol(b = 2):
     return b
@@ -402,8 +392,6 @@ def lol(a = 4):
         a = 5
         return (d + a)
     return (f(a) + 1)
->>> print(makefunc('lol', history=['a=4', 'def f(d): a = 5; return d + a', 'f(a)+1']))
-
 """
 
     history = getHistory(history)
@@ -530,9 +518,7 @@ def calldic(f, *args, **kwargs):
     """
     d = {}
     exec(src_locals(inspect.getsource(f)), d)
-    newf = d[f.__name__]
-    newf(*args, **kwargs)
-    return newf.__locals__
+    return d[f.__name__](*args, **kwargs)
 
 
 def gensym(name):
@@ -574,13 +560,14 @@ def pmed(f):
 def src_locals(src, newvars=True):
     """
 >>> print(src_locals('def add(a, b): c = 8; return a + b'))
-def add(a, b):
-    try:
-        c = 8
-        __retv__ = (a + b)
-        return locals()
-    except Exception as e:
-        return locals()
+    def add(a, b):
+        try:
+            c = 8
+            __retv__ = (a + b)
+            return locals()
+        except Exception as e:
+            __retv__ = locals()
+            return locals()
     """
     src = ast.parse(src)
     locs = collections.OrderedDict()
@@ -601,11 +588,9 @@ def add(a, b):
             if isinstance(node, list):
                 for nade in node:
                     if isinstance(nade, ast.Return):
-                        retline = ast.parse('__retv__ = %s' % tos(nade.value)).body[0]
-                        #saveLocal = ast.parse(
-                        #    ''.join([src.body[0].name, '.', '__locals__', '=', 'locals(
-                        # )'])).body[0]
-                        node[-1:] = [retline, saveLocal] + [node[-1]]
+                        retline = parse('__retv__ = %s' % tos(nade.value))
+                        ret = parse('return locals()')
+                        node[-1:] = [retline, ret]
                         break
                     else:
                         myparser(nade)
