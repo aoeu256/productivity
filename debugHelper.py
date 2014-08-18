@@ -1,3 +1,4 @@
+from _ast import Set, List, Dict
 import collections
 from io import StringIO
 
@@ -21,6 +22,7 @@ import collections
 import pdb
 import traceback
 import astor
+import re
 # import debug
 # pydevd.GetGlobalDebugger().setExceptHook(Exception, True, False)
 
@@ -31,11 +33,50 @@ def ignored(*exc_list):
         if e.__class__ not in exc_list:
             raise
 
+def interp(string): # not by me
+    """ >>> interp('hi #{1+1}')
+    'hi 2'
+    """
+    locals  = sys._getframe(1).f_locals
+    globals = sys._getframe(1).f_globals
+    for item in re.findall(r'#\{([^}]*)\}', string):
+        string = string.replace('#{%s}' % item,
+                                str(eval(item, globals, locals)))
+    return string
+
 # with query('~f(*~args)') as query:
 # 	query.add_next()
 
-# static locals
-#
+class MyNode(ast.AST):
+    def insert_next(self, node):
+        self.parent.insert(self.index+1, node)
+
+    def insert_before(self, node):
+        self.parent.insert(max(self.index-1, 0), node)
+
+    @property
+    def index(self):
+        return self.parent.index(self)
+
+
+def fully_linked_nodes(node, parent=None):
+    node.parent = parent
+    yield MyNode(node)
+    if isinstance(node, list):
+        for x, nade in enumerate(node):
+            if x > 0: nade.previous = node[x-1]
+            if x < len(node): nade.next = node[x+1]
+            nade.parent = node.parent
+            nade.x = x
+            yield MyNode(nade)
+    else:
+        for nade in ast.iter_fields(node):
+            nade.parent = node
+            yield nade
+            yield from fully_linked_nodes(nade)
+
+
+
 # def query(q, code):
 #     """
 # >>> for node in query('~f(*~args)', 'for g in c: a(b(5)); c(8)'):
@@ -48,16 +89,22 @@ def ignored(*exc_list):
 #     assert sStr not in q
 #     q.replace('~', sStr)
 #     locs = {}
-#     pt = ast.parse(q)
-#     for node in pt.walk(q):
-#         if node.__class__ != pt.__class__: continue
+#     qt = ast.parse(q)
+#     codet = ast.parse(code)
+#     for node in ast.walk(codet):
 #
-#         # updateLocs(node, locs)
+#         def checkEqual(srcnode, qnode):
 #
-#         for fielda, fieldb in zip(ast.iter_fields(node), ast.iter_fields(q)):
-#             if fielda == fieldb or fieldb == sStr: break
+#             return all(isinstance(qnode, str) and sStr in qnode or checkEqual(srcnode, qnode) \
+#                 for srcnode, qnode in zip(ast.iter_children(node), ast.iter_children(qt)))
+#         ast.iter_child_nodes()
+#             if srcnode != qnode and qnode != sStr: break
+#             elif qnode == sStr:
 #
-#         yield node
+#             else:
+#                 None
+#         else:
+#             yield node
 
 def tag(tag_list):
     return lambda f: setattr(f, 'tags', getattr(f, 'tags', []) + words(tag_list))
@@ -226,7 +273,7 @@ deps(new=[], deps=['a', 'd'])
             self.importdeps.append(node)
 
     def add_setter(self, name, node):  # name should be fullName
-        node = prettify(node)
+        #node = prettify(node)
         try:
             self.setters[name].append(node)
         except KeyError:
@@ -256,7 +303,7 @@ deps(new=[], deps=['a', 'd'])
 
     def visit_deps(self, node):
         if isinstance(node, ast.Assign):
-            targets = {fullName(name): set([])
+            targets = {fullName(name): set()
                 for tags in node.targets
                 for name in get_names(tags)
             }
@@ -315,8 +362,14 @@ deps(new=[], deps=['a', 'd'])
             with self.setters.local({}) as newsetters:
                 self.visit_children(node)
 
+def enclosed(s = '()', st):
+    return s[0] + st + s[1]
 
-def depsAll(history, depf=None):
+def sorteddic(dic):
+    keys = sorted(dic.keys())
+    return enclosed('{}', ', '.join(['%s:%s' % (repr(k), repr(dic[k])) for k in keys]))
+
+def depsAll(historyA, depf=None):
     """
 >>> linedeps, setters, locals, errors = depsAll(['a=2', 'b=a', 'a=b', 'b=a', 'a=b'])
 >>> linedeps
@@ -365,18 +418,23 @@ def filterdeps(linedeps, retln):
 words = lambda a: a.split() if isinstance(a, str) else list(a)
 
 def getHistory(history):
-
-    if history is None and '__IPYTHON__' in dir(__builtins__):
-        history = _ih  # @UndefinesdVariable
+    from itertools import islice
+    if history is None and '__IPYTHON__' in __builtins__:
+        import IPython
+        ip = IPython.core.getipython.get_ipython()
+        history = ip.history_manager.input_hist_parsed  # @UndefinesdVariable
 
     newhistory = []
-    for line in history:
+    for line in islice(history, len(history)-1):
         with ignored(SyntaxError):
             for lline in ast.parse(line).body:
                 newhistory.append(astor.to_source(lline))
     return newhistory
 
-def makefunc(name, arglist='', history=None, ret=None, imports=True):
+from IPython.core.magic_arguments import (argument, magic_arguments,
+    parse_argstring)
+
+def makefunc(name='f', arglist='', history=None, ret=None, imports=True):
     """
 >>> hist=['b=2', 'a=b+5']
 >>> print(makefunc('lol', history=hist))
@@ -517,7 +575,7 @@ def calldic(f, *args, **kwargs):
 {'a': 1, 'c': 8, 'b': 2, '__retv__': 3}
     """
     d = {}
-    exec(src_locals(inspect.getsource(f)), d)
+    exec(src_locals(inspect.getsource(f)), globals(), d)
     return d[f.__name__](*args, **kwargs)
 
 
@@ -556,18 +614,37 @@ def pmed(f):
 
     return wrapped
 
+def getArgs(func_ast):
+    return (i.arg for i in func_ast.args)
+
+
+
+#for q in query('return $x', {'x_in': (Dict, Tuple)}):
+def tuple_func(fnode):
+    for node in ast.walk(fnode):
+        if isinstance(node, ast.Return) and node.value.__class__ in (Dict, Tuple, List, Set):
+            ret = node.value
+            keys, values = (ret.keys, ret.values) if isinstance(ret, Dict) else (ret.elts, ret.elts)
+            fields = [i.id for i in fields]
+
+            np_node = parse(interp('namedtuple("#{fnode.name}", #{[name.id for name in keys]})'))
+            node.insert_before(np_node)
+            node.value = interp('#{fnode.name}(#{[v.id for v in values]})')
+
+
+
 
 def src_locals(src, newvars=True):
     """
 >>> print(src_locals('def add(a, b): c = 8; return a + b'))
-    def add(a, b):
-        try:
-            c = 8
-            __retv__ = (a + b)
-            return locals()
-        except Exception as e:
-            __retv__ = locals()
-            return locals()
+def add(a, b):
+    try:
+        c = 8
+        __retv__ = (a + b)
+        return locals()
+    except Exception as e:
+        __retv__ = locals()
+        return locals()
     """
     src = ast.parse(src)
     locs = collections.OrderedDict()
@@ -685,11 +762,10 @@ class unzip:
 
         self.ln = lin
 
-    # LOGICAL LINE BITCHES!!!(TABS?), AST CAN FIX THAT SHIT?
+    # LOGICAL LINES!(TABS?), AST CAN FIX THAT?
     # SET_TRACE?
     # use parse / tos | logical lines
 
-    ast.iter_fields
 
     def verbose_exec(self, statement, **pargs):
         if 'return' in statement:
