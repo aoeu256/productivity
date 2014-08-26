@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/debugHelper.py" line="107" mnemonic="3" />
+    <bookmark url="file://$PROJECT_DIR$/debugHelper.py" line="46" mnemonic="3" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae426205-6a01-4c64-807e-a950a35497f1" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/commit.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/debugHelper.py" afterPath="$PROJECT_DIR$/debugHelper.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="deb.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -33,12 +31,34 @@
       <file leaf-file-name="debugHelper.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/debugHelper.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.75609756" vertical-offset="8302" max-vertical-offset="14896">
-              <caret line="624" column="13" selection-start-line="624" selection-start-column="13" selection-end-line="624" selection-end-column="13" />
+            <state vertical-scroll-proportion="0.63414633" vertical-offset="7616" max-vertical-offset="14756">
+              <caret line="570" column="33" selection-start-line="570" selection-start-column="33" selection-end-line="570" selection-end-column="33" />
               <folding>
                 <element signature="e#0#32#0" expanded="true" />
-                <marker date="1408330810471" expanded="true" signature="5057:5133" placeholder="..." />
-                <marker date="1408330810471" expanded="true" signature="17340:17362" placeholder="..." />
+                <marker date="1408843720940" expanded="true" signature="3424:3500" placeholder="..." />
+                <marker date="1408843720940" expanded="true" signature="15719:15741" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="macro_helper.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/macro_helper.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="644" max-vertical-offset="1778">
+              <caret line="75" column="8" selection-start-line="75" selection-start-column="4" selection-end-line="75" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="compilewatch.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/Documents/GitHub/vocabtool/compilewatch.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="756">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -57,11 +77,9 @@
       <file leaf-file-name="__init__.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://C:/Python34/Lib/site-packages/astor/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="378">
-              <caret line="21" column="8" selection-start-line="21" selection-start-column="8" selection-end-line="21" selection-end-column="8" />
-              <folding>
-                <element signature="e#201#239#0" expanded="true" />
-              </folding>
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="350">
+              <caret line="18" column="22" selection-start-line="18" selection-start-column="22" selection-end-line="18" selection-end-column="22" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -69,8 +87,18 @@
       <file leaf-file-name="treewalk.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://C:/Python34/Lib/site-packages/astor/treewalk.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2212">
-              <caret line="31" column="26" selection-start-line="31" selection-start-column="26" selection-end-line="31" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1638" max-vertical-offset="2212">
+              <caret line="123" column="0" selection-start-line="123" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="misc.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://C:/Python34/Lib/site-packages/astor/misc.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="2268" max-vertical-offset="2842">
+              <caret line="196" column="0" selection-start-line="196" selection-start-column="0" selection-end-line="196" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -89,38 +117,8 @@
       <file leaf-file-name="interactiveshell.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://C:/Python34/Lib/site-packages/IPython/core/interactiveshell.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="40348" max-vertical-offset="45122">
-              <caret line="2882" column="0" selection-start-line="2882" selection-start-column="0" selection-end-line="2882" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="util.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Downloads/whimsy/util.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2030">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ast.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://C:/Python34/Lib/ast.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="2187" max-vertical-offset="4494">
-              <caret line="176" column="4" selection-start-line="176" selection-start-column="4" selection-end-line="176" selection-end-column="4" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="doctest.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://C:/Python34/Lib/doctest.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="25802" max-vertical-offset="39186">
-              <caret line="1843" column="0" selection-start-line="1843" selection-start-column="0" selection-end-line="1843" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="10724" max-vertical-offset="44226">
+              <caret line="851" column="66" selection-start-line="851" selection-start-column="66" selection-end-line="851" selection-end-column="66" />
               <folding />
             </state>
           </provider>
@@ -129,8 +127,8 @@
       <file leaf-file-name="codegen.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://C:/Python34/Lib/site-packages/astor/codegen.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="658" max-vertical-offset="7210">
-              <caret line="47" column="4" selection-start-line="47" selection-start-column="4" selection-end-line="47" selection-end-column="4" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="6594" max-vertical-offset="7168">
+              <caret line="509" column="0" selection-start-line="509" selection-start-column="0" selection-end-line="509" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -156,9 +154,10 @@
       <list>
         <option value="C:/Python34/Lib/lol.rb" />
         <option value="$USER_HOME$/AppData/Local/Temp/ipython_edit_p8lfnf66/ipython_edit_iquw28f6.py" />
-        <option value="C:/Python34/Lib/site-packages/astor/__init__.py" />
-        <option value="$PROJECT_DIR$/debugHelper.py" />
         <option value="$PROJECT_DIR$/commit.py" />
+        <option value="C:/Python34/Lib/site-packages/astor/__init__.py" />
+        <option value="$PROJECT_DIR$/macro_helper.py" />
+        <option value="$PROJECT_DIR$/debugHelper.py" />
       </list>
     </option>
   </component>
@@ -487,7 +486,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="960" y="0" width="960" height="1040" extended-state="0" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
@@ -497,7 +496,7 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.48390558" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32939914" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32939914" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -534,7 +533,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="python-line">
           <url>file://$PROJECT_DIR$/debugHelper.py</url>
-          <line>267</line>
+          <line>206</line>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>
@@ -548,8 +547,8 @@
           <caret line="382" column="16" selection-start-line="382" selection-start-column="15" selection-end-line="382" selection-end-column="16" />
           <folding>
             <element signature="e#0#32#0" expanded="true" />
-            <marker date="1408330810471" expanded="true" signature="5057:5133" placeholder="..." />
-            <marker date="1408330810471" expanded="true" signature="17340:17362" placeholder="..." />
+            <marker date="1408843720940" expanded="true" signature="3424:3500" placeholder="..." />
+            <marker date="1408843720940" expanded="true" signature="15719:15741" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -600,8 +599,8 @@
           <caret line="519" column="4" selection-start-line="519" selection-start-column="4" selection-end-line="519" selection-end-column="4" />
           <folding>
             <element signature="e#0#32#0" expanded="true" />
-            <marker date="1408330810471" expanded="true" signature="5057:5133" placeholder="..." />
-            <marker date="1408330810471" expanded="true" signature="17340:17362" placeholder="..." />
+            <marker date="1408843720940" expanded="true" signature="3424:3500" placeholder="..." />
+            <marker date="1408843720940" expanded="true" signature="15719:15741" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -701,18 +700,28 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/IPython/core/interactiveshell.py">
+    <entry file="file://$PROJECT_DIR$/commit.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="39253" max-vertical-offset="44226">
-          <caret line="2882" column="0" selection-start-line="2882" selection-start-column="0" selection-end-line="2882" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="154">
+          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/astor/codegen.py">
+    <entry file="file://$USER_HOME$/Documents/GitHub/vocabtool/compilewatch.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="98" max-vertical-offset="7168">
-          <caret line="47" column="4" selection-start-line="47" selection-start-column="4" selection-end-line="47" selection-end-column="4" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="672">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Python34/Lib/site-packages/IPython/core/interactiveshell.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="10724" max-vertical-offset="44226">
+          <caret line="851" column="66" selection-start-line="851" selection-start-column="66" selection-end-line="851" selection-end-column="66" />
           <folding />
         </state>
       </provider>
@@ -725,40 +734,54 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://C:/Python34/Lib/site-packages/astor/__init__.py">
+    <entry file="file://$PROJECT_DIR$/macro_helper.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="378">
-          <caret line="21" column="8" selection-start-line="21" selection-start-column="8" selection-end-line="21" selection-end-column="8" />
-          <folding>
-            <element signature="e#201#239#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0" vertical-offset="644" max-vertical-offset="1778">
+          <caret line="75" column="8" selection-start-line="75" selection-start-column="4" selection-end-line="75" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Python34/Lib/site-packages/astor/codegen.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="6594" max-vertical-offset="7168">
+          <caret line="509" column="0" selection-start-line="509" selection-start-column="0" selection-end-line="509" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Python34/Lib/site-packages/astor/misc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="2268" max-vertical-offset="2842">
+          <caret line="196" column="0" selection-start-line="196" selection-start-column="0" selection-end-line="196" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://C:/Python34/Lib/site-packages/astor/treewalk.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="2212">
-          <caret line="31" column="26" selection-start-line="31" selection-start-column="26" selection-end-line="31" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1638" max-vertical-offset="2212">
+          <caret line="123" column="0" selection-start-line="123" selection-start-column="0" selection-end-line="123" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/commit.py">
+    <entry file="file://C:/Python34/Lib/site-packages/astor/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="154">
-          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="350">
+          <caret line="18" column="22" selection-start-line="18" selection-start-column="22" selection-end-line="18" selection-end-column="22" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/debugHelper.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.75609756" vertical-offset="8302" max-vertical-offset="14896">
-          <caret line="624" column="13" selection-start-line="624" selection-start-column="13" selection-end-line="624" selection-end-column="13" />
+        <state vertical-scroll-proportion="0.63414633" vertical-offset="7616" max-vertical-offset="14756">
+          <caret line="570" column="33" selection-start-line="570" selection-start-column="33" selection-end-line="570" selection-end-column="33" />
           <folding>
             <element signature="e#0#32#0" expanded="true" />
-            <marker date="1408330810471" expanded="true" signature="5057:5133" placeholder="..." />
-            <marker date="1408330810471" expanded="true" signature="17340:17362" placeholder="..." />
+            <marker date="1408843720940" expanded="true" signature="3424:3500" placeholder="..." />
+            <marker date="1408843720940" expanded="true" signature="15719:15741" placeholder="..." />
           </folding>
         </state>
       </provider>

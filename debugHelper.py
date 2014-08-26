@@ -44,67 +44,6 @@ def interp(string): # not by me
                                 str(eval(item, globals, locals)))
     return string
 
-# with query('~f(*~args)') as query:
-# 	query.add_next()
-
-class MyNode(ast.AST):
-    def insert_next(self, node):
-        self.parent.insert(self.index+1, node)
-
-    def insert_before(self, node):
-        self.parent.insert(max(self.index-1, 0), node)
-
-    @property
-    def index(self):
-        return self.parent.index(self)
-
-
-def fully_linked_nodes(node, parent=None):
-    node.parent = parent
-    yield MyNode(node)
-    if isinstance(node, list):
-        for x, nade in enumerate(node):
-            if x > 0: nade.previous = node[x-1]
-            if x < len(node): nade.next = node[x+1]
-            nade.parent = node.parent
-            nade.x = x
-            yield MyNode(nade)
-    else:
-        for nade in ast.iter_fields(node):
-            nade.parent = node
-            yield nade
-            yield from fully_linked_nodes(nade)
-
-
-
-# def query(q, code):
-#     """
-# >>> for node in query('~f(*~args)', 'for g in c: a(b(5)); c(8)'):
-# ...    print(tos(node))
-# a(b(5))
-# b(5)S
-# c(8)
-#     """
-#     sStr = '_q_u_e_'
-#     assert sStr not in q
-#     q.replace('~', sStr)
-#     locs = {}
-#     qt = ast.parse(q)
-#     codet = ast.parse(code)
-#     for node in ast.walk(codet):
-#
-#         def checkEqual(srcnode, qnode):
-#
-#             return all(isinstance(qnode, str) and sStr in qnode or checkEqual(srcnode, qnode) \
-#                 for srcnode, qnode in zip(ast.iter_children(node), ast.iter_children(qt)))
-#         ast.iter_child_nodes()
-#             if srcnode != qnode and qnode != sStr: break
-#             elif qnode == sStr:
-#
-#             else:
-#                 None
-#         else:
-#             yield node
 
 def tag(tag_list):
     return lambda f: setattr(f, 'tags', getattr(f, 'tags', []) + words(tag_list))
@@ -263,7 +202,7 @@ deps(new=[], deps=['a', 'd'])
         self.deps.clear()
         self.setters.clear()
         return func(node)
-
+import astor
     def add_dep(self, node):  # name should be fullName
         if self.is_depvar(node):
             name = leftName(node)
@@ -630,7 +569,18 @@ def tuple_func(fnode):
             np_node = parse(interp('namedtuple("#{fnode.name}", #{[name.id for name in keys]})'))
             node.insert_before(np_node)
             node.value = interp('#{fnode.name}(#{[v.id for v in values]})')
+    return node
 
+@macro_decorator
+def tupelized(node):
+    return tuple_func(node)
+
+def macro_decorator(macrof):
+    src = inspect.getsource(macrof)
+    tree = macrof(ast.parse(src))
+    tree.name =
+    import astor
+    functools.wraps(newf)
 
 
 
@@ -1029,12 +979,12 @@ def main():
 # 			print(astor.to_source(call), 'locals()=', locs)
 
 
-def pm_to(search, startframe=None, module=None, trace=False):
+def find_locals(search, startframe=None, trace=False):
     from pprint import pprint
 
-    try:
-        startframe = startframe or pm_to.__startframe__
-    except AttributeError:
+    startframe = startframe or \
+                 getattr(find_locals, '__startframe__', None) or \
+                 getattr(sys, 'last_traceback')
         with ignored(AttributeError): startframe = sys.last_traceback.tb_frame
 
     try:
@@ -1052,6 +1002,46 @@ def pm_to(search, startframe=None, module=None, trace=False):
         pdb.set_trace(frame)
     return frame.f_locals
 
+def find_locals(search, startframe=None, trace=False):
+    from pprint import pprint
+
+    startframe = startframe or getattr(sys, 'last_traceback', None) and sys.last_traceback.tb_frame
+    frames = inspect.getinnerframes(startframe)
+
+    frame = [tb[0] for (tb, _, lineno, fname, *rest) in frames
+             if search in (lineno, fname)][0]
+
+    find_locals.shadowed_vars = {}
+    for k, v in frame.f_locals.items():
+        if k in globals():
+            find_locals.shadowed_vars[k] = globals()[k]
+        globals()[k] = v
+    def restore():
+        for k, v in find_locals.shadowed_vars:
+            globals()[k] = v
+
+    if trace:
+        pprint(frame.f_locals)
+        pdb.set_trace(frame)
+    return frame.f_locals
+
+def findlocals(search, startframe=None, trace=False):
+    """
+
+    """
+    from pprint import pprint
+    import inspect, pdb
+
+    startframe = startframe or sys.last_traceback
+    frames = inspect.getinnerframes(startframe)
+
+    frame = [tb for (tb, _, lineno, fname, _, _) in frames
+             if search in (lineno, fname)][0]
+
+    if trace:
+        pprint(frame.f_locals)
+        pdb.set_trace(frame)
+    return frame.f_locals
 
 if __name__ == '__main__':
     main()
